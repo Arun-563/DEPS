@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Register - Deps Blood Bank{% endblock %}
+{% block content %}
+<div class="max-w-lg mx-auto bg-white rounded-xl shadow-sm border border-slate-200 p-8 mt-4">
+    <h1 class="text-2xl font-bold text-slate-900 mb-1">Donor &amp; Recipient Registration</h1>
+    <p class="text-sm text-slate-500 mb-6">Create an account to donate blood or track blood requests.</p>
+
+    <form method="POST" action="{{ url_for('register') }}" class="space-y-4">
+        <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
+            <input type="text" name="name" required placeholder="John Doe"
+                   class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Blood Group</label>
+                <select name="blood_type" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+                    {% for bt in ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] %}
+                        <option value="{{ bt }}">{{ bt }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">City</label>
+                <select name="city_id" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+                    {% for city in cities %}
+                        <option value="{{ city[0] }}">{{ city[1] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Date of Birth</label>
+                <input type="date" name="dob" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Personal Email (for Alerts)</label>
+                <input type="email" name="contact" required placeholder="you@example.com"
+                       class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+            </div>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Password</label>
+            <input type="password" name="password" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+        </div>
+
+        <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2.5 rounded-lg transition">
+            Create Account
+        </button>
+    </form>
+
+    <p class="text-center text-sm text-slate-600 mt-4">
+        Already registered? <a href="{{ url_for('login') }}" class="text-red-600 font-semibold hover:underline">Back to Login</a>
+    </p>
+</div>
+{% endblock %}

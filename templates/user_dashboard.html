@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% block title %}Donor Dashboard - Deps Blood Bank{% endblock %}
+{% block content %}
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+        <div class="text-xs uppercase font-semibold text-slate-400">Donor Profile</div>
+        <div class="text-xl font-bold mt-1">{{ user_details.name }} (ID #{{ user_details.user_id }})</div>
+        <div class="text-sm text-slate-600 mt-1">City: {{ user_details.city_name }} &bull; Email: {{ user_details.contact }}</div>
+        <div class="text-xs text-slate-400 mt-2">Share your User ID (#{{ user_details.user_id }}) with a Registrar at any camp or desk.</div>
+    </div>
+
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between">
+        <div>
+            <div class="text-xs uppercase font-semibold text-slate-400">Blood Group</div>
+            <div class="text-3xl font-black text-red-600 mt-1">{{ user_details.blood_type }}</div>
+        </div>
+        <div class="text-right">
+            <div class="text-xs uppercase font-semibold text-slate-400">Total Donations</div>
+            <div class="text-3xl font-bold text-slate-800 mt-1">{{ user_details.donations|length }}</div>
+        </div>
+    </div>
+
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+        <div class="text-xs uppercase font-semibold text-slate-400 mb-2">Donation Eligibility Status</div>
+        {% if is_eligible %}
+            <div class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
+                Eligible to Donate Today
+            </div>
+            <p class="text-xs text-slate-500 mt-2">
+                Visit any active camp in <strong>{{ user_details.city_name }}</strong> with User ID <strong>#{{ user_details.user_id }}</strong>. A Registrar will verify and log your donation.
+            </p>
+        {% else %}
+            <div class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
+                60-Day Recovery Cooldown ({{ days_remaining }} days left)
+            </div>
+            <p class="text-xs text-slate-500 mt-2">
+                Next eligible donation date: <strong>{{ next_eligible_date }}</strong>.
+            </p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
+    <h2 class="text-lg font-bold mb-3">Active Donation Camps in Your City</h2>
+    {% if active_camps %}
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {% for camp in active_camps %}
+            <div class="border border-emerald-200 bg-emerald-50/50 rounded-lg p-4">
+                <div class="font-semibold text-emerald-900">Camp #{{ camp[0] }} &mdash; {{ camp[1] }}</div>
+                <div class="text-xs text-emerald-700 mt-1">{{ camp[2] }} to {{ camp[3] }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-sm text-slate-500">No active camps right now.</p>
+    {% endif %}
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <h2 class="text-lg font-bold mb-4">My Donation History</h2>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left">
+                <thead class="bg-slate-100 text-slate-600 uppercase text-xs">
+                    <tr>
+                        <th class="px-3 py-2">Unit ID</th>
+                        <th class="px-3 py-2">Date</th>
+                        <th class="px-3 py-2">City</th>
+                        <th class="px-3 py-2">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for d in user_details.donations %}
+                    <tr>
+                        <td class="px-3 py-2 font-semibold">#{{ d.blood_id }}</td>
+                        <td class="px-3 py-2">{{ d.donation_date }}</td>
+                        <td class="px-3 py-2">{{ d.camp_city }}</td>
+                        <td class="px-3 py-2">
+                            {% if d.assigned == 'yes' %}
+                                <span class="px-2 py-0.5 bg-blue-100 text-blue-800 rounded text-xs font-medium">Assigned</span>
+                            {% elif d.assigned == 'ex' %}
+                                <span class="px-2 py-0.5 bg-slate-200 text-slate-700 rounded text-xs font-medium">Expired</span>
+                            {% else %}
+                                <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded text-xs font-medium">Available</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="4" class="px-3 py-4 text-center text-slate-400">No donations logged yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <h2 class="text-lg font-bold mb-4">My Blood Requests</h2>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left">
+                <thead class="bg-slate-100 text-slate-600 uppercase text-xs">
+                    <tr>
+                        <th class="px-3 py-2">Req ID</th>
+                        <th class="px-3 py-2">Group</th>
+                        <th class="px-3 py-2">Date</th>
+                        <th class="px-3 py-2">Allocation</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for r in user_details.requests %}
+                    <tr>
+                        <td class="px-3 py-2 font-semibold">#{{ r.request_id }}</td>
+                        <td class="px-3 py-2 font-bold text-red-600">{{ r.blood_type }}</td>
+                        <td class="px-3 py-2">{{ r.request_date }}</td>
+                        <td class="px-3 py-2">
+                            {% if r.status == 'yes' and r.blood_found == 'yes' %}
+                                <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded text-xs font-medium">Approved (Unit #{{ r.blood_id }})</span>
+                            {% elif r.blood_found == 'yes' %}
+                                <span class="px-2 py-0.5 bg-amber-100 text-amber-800 rounded text-xs font-medium">Reserved (Unit #{{ r.blood_id }})</span>
+                            {% else %}
+                                <span class="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-xs font-medium">Searching</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="4" class="px-3 py-4 text-center text-slate-400">No blood requests on file.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

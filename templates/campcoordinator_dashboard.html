@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block title %}Camp Coordinator Dashboard - Deps Blood Bank{% endblock %}
+{% block content %}
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+    <div>
+        <h1 class="text-2xl font-bold">Camp Coordinator Portal</h1>
+        <p class="text-sm text-slate-500">City ID #{{ city_id }} &bull; Expired Units Flagged: {{ expired_count }}</p>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+        <h2 class="text-lg font-bold mb-4">Schedule Donation Camp</h2>
+        <form method="POST" class="space-y-3">
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Start Date</label>
+                <input type="date" name="start_date" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">End Date</label>
+                <input type="date" name="end_date" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+            </div>
+            <button type="submit" name="add_camp" class="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg text-sm font-semibold">
+                Create Camp
+            </button>
+        </form>
+    </div>
+
+    <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+        <h2 class="text-lg font-bold mb-4">Pending Blood Allocation Approvals</h2>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left">
+                <thead class="bg-slate-100 text-xs uppercase text-slate-600">
+                    <tr>
+                        <th class="px-3 py-2">Req #</th>
+                        <th class="px-3 py-2">Recipient</th>
+                        <th class="px-3 py-2">Group</th>
+                        <th class="px-3 py-2">Unit #</th>
+                        <th class="px-3 py-2">Expiry</th>
+                        <th class="px-3 py-2">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for req in pending_requests %}
+                    <tr>
+                        <td class="px-3 py-2 font-semibold">#{{ req[0] }}</td>
+                        <td class="px-3 py-2">{{ req[2] }}</td>
+                        <td class="px-3 py-2 font-bold text-red-600">{{ req[3] }}</td>
+                        <td class="px-3 py-2">#{{ req[6] }}</td>
+                        <td class="px-3 py-2">{{ req[7] }}</td>
+                        <td class="px-3 py-2 flex space-x-2">
+                            <form method="POST" action="{{ url_for('approve_request', process_id=req[5]) }}">
+                                <button class="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded text-xs font-semibold">Approve</button>
+                            </form>
+                            <form method="POST" action="{{ url_for('reject_request', process_id=req[5]) }}">
+                                <button class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-2.5 py-1 rounded text-xs font-semibold">Reject</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="6" class="px-3 py-6 text-center text-slate-400">No pending approvals right now.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+        <h2 class="text-lg font-bold mb-4">Available City Inventory</h2>
+        <table class="w-full text-sm text-left">
+            <thead class="bg-slate-100 text-xs uppercase text-slate-600">
+                <tr><th class="px-3 py-2">Blood Type</th><th class="px-3 py-2">Available Units</th><th class="px-3 py-2">Earliest Expiry</th></tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+                {% for item in inventory %}
+                <tr>
+                    <td class="px-3 py-2 font-bold text-red-600">{{ item[0] }}</td>
+                    <td class="px-3 py-2">{{ item[1] }}</td>
+                    <td class="px-3 py-2">{{ item[2] }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="3" class="px-3 py-4 text-center text-slate-400">No active inventory.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+        <h2 class="text-lg font-bold mb-4">City Camps</h2>
+        <table class="w-full text-sm text-left">
+            <thead class="bg-slate-100 text-xs uppercase text-slate-600">
+                <tr><th class="px-3 py-2">Camp ID</th><th class="px-3 py-2">Start Date</th><th class="px-3 py-2">End Date</th></tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+                {% for c in camps %}
+                <tr>
+                    <td class="px-3 py-2 font-semibold">#{{ c[0] }}</td>
+                    <td class="px-3 py-2">{{ c[1] }}</td>
+                    <td class="px-3 py-2">{{ c[2] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+{% block title %}Registrar Dashboard - Deps Blood Bank{% endblock %}
+{% block content %}
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+    <div>
+        <h1 class="text-2xl font-bold">Registrar Operations Portal</h1>
+        <p class="text-sm text-slate-500">Logged in as {{ name }} &bull; Staff-verified donation &amp; request desk</p>
+    </div>
+</div>
+
+<!-- Quick User Lookup Bar -->
+<div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 mb-6">
+    <h2 class="text-sm font-bold uppercase tracking-wide text-slate-600 mb-3">Lookup Registered Donor / Recipient ID</h2>
+    <form method="POST" class="flex flex-col sm:flex-row gap-2">
+        <input type="text" name="search_query" value="{{ search_query }}" required
+               placeholder="Search by Name, Email, or User ID..."
+               class="border border-slate-300 rounded-lg px-3 py-2 text-sm flex-grow">
+        <button type="submit" name="search_users" class="bg-slate-800 hover:bg-slate-900 text-white px-5 py-2 rounded-lg text-sm font-semibold">
+            Find User
+        </button>
+    </form>
+    {% if searched_users %}
+    <div class="overflow-x-auto mt-3">
+        <table class="w-full text-sm text-left">
+            <thead class="bg-slate-100 text-xs uppercase text-slate-600">
+                <tr>
+                    <th class="px-3 py-2">User ID</th>
+                    <th class="px-3 py-2">Name</th>
+                    <th class="px-3 py-2">Blood Group</th>
+                    <th class="px-3 py-2">City</th>
+                    <th class="px-3 py-2">Email</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+                {% for u in searched_users %}
+                <tr>
+                    <td class="px-3 py-2 font-bold text-slate-900">#{{ u[0] }}</td>
+                    <td class="px-3 py-2">{{ u[1] }}</td>
+                    <td class="px-3 py-2 font-bold text-red-600">{{ u[2] }}</td>
+                    <td class="px-3 py-2">{{ u[3] }}</td>
+                    <td class="px-3 py-2 text-slate-600">{{ u[4] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% elif search_query %}
+    <p class="text-xs text-slate-500 mt-2">No registered users matched "{{ search_query }}".</p>
+    {% endif %}
+</div>
+
+<!-- Primary Registrar Actions: Log Donation & Submit Request -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <!-- 1. Record Verified Walk-In Donation -->
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+        <h2 class="text-lg font-bold mb-1">Record Verified Walk-In Donation</h2>
+        <p class="text-xs text-slate-500 mb-4">Logs a physically collected unit into active inventory &amp; emails the donor.</p>
+        <form method="POST" class="space-y-3">
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Donor User ID</label>
+                    <input type="number" name="donor_user_id" required placeholder="e.g., 1"
+                           class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Donation Date (Locked)</label>
+                    <input type="date" name="donation_date" value="{{ today }}" min="{{ today }}" max="{{ today }}" readonly
+                           class="w-full border border-slate-300 bg-slate-100 text-slate-700 rounded-lg px-3 py-2 text-sm cursor-not-allowed">
+                </div>
+            </div>
+            <p class="text-xs text-slate-400">Requires an active camp in the donor's city and a 60-day recovery gap.</p>
+            <button type="submit" name="record_donation" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-lg text-sm font-semibold">
+                Verify &amp; Log Blood Donation
+            </button>
+        </form>
+    </div>
+
+    <!-- 2. Submit Verified Blood Request -->
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+        <h2 class="text-lg font-bold mb-1">Submit Verified Blood Request</h2>
+        <p class="text-xs text-slate-500 mb-4">Creates a hospital/patient request and auto-reserves matching stock.</p>
+        <form method="POST" class="space-y-3">
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Recipient User ID</label>
+                    <input type="number" name="recipient_user_id" required placeholder="e.g., 5"
+                           class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Blood Type</label>
+                    <select name="blood_type" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+                        {% for bt in ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] %}
+                            <option value="{{ bt }}">{{ bt }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Units Required</label>
+                    <input type="number" name="units_required" value="1" min="1" required
+                           class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Request Date (Locked)</label>
+                    <input type="date" name="request_date" value="{{ today }}" min="{{ today }}" max="{{ today }}" readonly
+                           class="w-full border border-slate-300 bg-slate-100 text-slate-700 rounded-lg px-3 py-2 text-sm cursor-not-allowed">
+                </div>
+            </div>
+            <button type="submit" name="request_blood" class="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg text-sm font-semibold">
+                Submit &amp; Auto-Match Blood
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- City Stock Check -->
+<div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 mb-8">
+    <h2 class="text-lg font-bold mb-4">Check City Stock Availability</h2>
+    <form method="POST" class="flex space-x-2 mb-4 max-w-md">
+        <select name="city_id" required class="border border-slate-300 rounded-lg px-3 py-2 text-sm flex-grow">
+            {% for city in cities %}
+                <option value="{{ city[0] }}" {% if selected_city_id|string == city[0]|string %}selected{% endif %}>{{ city[1] }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" name="view_inventory" class="bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-semibold">Check</button>
+    </form>
+    {% if inventory %}
+    <table class="w-full text-sm text-left max-w-xl">
+        <thead class="bg-slate-100 text-xs uppercase text-slate-600">
+            <tr><th class="px-3 py-2">Group</th><th class="px-3 py-2">Units</th><th class="px-3 py-2">Earliest Expiry</th></tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+            {% for row in inventory %}
+            <tr>
+                <td class="px-3 py-2 font-bold text-red-600">{{ row[0] }}</td>
+                <td class="px-3 py-2">{{ row[1] }}</td>
+                <td class="px-3 py-2">{{ row[3] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+</div>
+
+<!-- Audit Logs: Recent Donations & Blood Requests -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+        <h2 class="text-lg font-bold mb-4">Recent Verified Donations</h2>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left">
+                <thead class="bg-slate-100 text-xs uppercase text-slate-600">
+                    <tr>
+                        <th class="px-3 py-2">Unit #</th>
+                        <th class="px-3 py-2">Donor</th>
+                        <th class="px-3 py-2">Group</th>
+                        <th class="px-3 py-2">City</th>
+                        <th class="px-3 py-2">Date</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for d in donations %}
+                    <tr>
+                        <td class="px-3 py-2 font-semibold">#{{ d[2] }}</td>
+                        <td class="px-3 py-2">{{ d[1] }} (ID #{{ d[0] }})</td>
+                        <td class="px-3 py-2 font-bold text-red-600">{{ d[3] }}</td>
+                        <td class="px-3 py-2">{{ d[5] }}</td>
+                        <td class="px-3 py-2">{{ d[4] }}</td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="5" class="px-3 py-4 text-center text-slate-400">No donations recorded yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+        <h2 class="text-lg font-bold mb-4">Recent Blood Requests</h2>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left">
+                <thead class="bg-slate-100 text-xs uppercase text-slate-600">
+                    <tr>
+                        <th class="px-3 py-2">Req #</th>
+                        <th class="px-3 py-2">Recipient</th>
+                        <th class="px-3 py-2">Group</th>
+                        <th class="px-3 py-2">Units</th>
+                        <th class="px-3 py-2">Date</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for r in requests %}
+                    <tr>
+                        <td class="px-3 py-2 font-semibold">#{{ r[0] }}</td>
+                        <td class="px-3 py-2">{{ r[2] }} (ID #{{ r[1] }})</td>
+                        <td class="px-3 py-2 font-bold text-red-600">{{ r[4] }}</td>
+                        <td class="px-3 py-2">{{ r[5] }}</td>
+                        <td class="px-3 py-2">{{ r[6] }}</td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="5" class="px-3 py-4 text-center text-slate-400">No requests logged yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

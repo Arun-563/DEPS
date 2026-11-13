@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Deps Blood Bank{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+    <nav class="bg-red-700 text-white shadow-md">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+            <a href="/" class="flex items-center space-x-2 font-bold text-xl tracking-tight">
+                <span class="bg-white text-red-700 px-2 py-0.5 rounded font-black">+</span>
+                <span>Deps BloodBank</span>
+            </a>
+            {% if session.get('user_id') %}
+            <div class="flex items-center space-x-4 text-sm">
+                <span class="hidden sm:inline bg-red-800 px-3 py-1 rounded-full">
+                    {{ session.get('name') }} ({{ session.get('role')|title }})
+                </span>
+                <a href="{{ url_for('logout') }}" class="bg-white text-red-700 hover:bg-red-50 px-3 py-1.5 rounded font-semibold transition">
+                    Logout
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </nav>
+
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 py-6">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="space-y-2 mb-6">
+                    {% for category, message in messages %}
+                        <div class="p-4 rounded-lg border text-sm font-medium
+                            {% if category == 'success' %} bg-emerald-50 border-emerald-300 text-emerald-800
+                            {% elif category == 'error' %} bg-red-50 border-red-300 text-red-800
+                            {% elif category == 'warning' %} bg-amber-50 border-amber-300 text-amber-800
+                            {% else %} bg-blue-50 border-blue-300 text-blue-800 {% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-500">
+        Deps Blood Bank Management System &bull; PostgreSQL Trigger &amp; Transaction Engine
+    </footer>
+</body>
+</html>
